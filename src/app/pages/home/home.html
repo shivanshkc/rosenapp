@@ -74,7 +74,7 @@
 
         <div class="message-input">
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <input matInput placeholder="Type a message" [(ngModel)]="newMessage" (keydown.enter)="sendMessage()" />
+            <input matInput #messageInput placeholder="Type a message" [(ngModel)]="newMessage" (keydown.enter)="sendMessage()" />
             <button mat-icon-button matSuffix [disabled]="!newMessage.trim()" (click)="sendMessage()">
               <mat-icon>send</mat-icon>
             </button>

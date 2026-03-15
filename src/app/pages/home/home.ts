@@ -55,9 +55,11 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
   private nextId = 1;
   private shouldScrollToBottom = false;
   private shouldScrollChatListToTop = false;
+  private shouldFocusMessageInput = false;
 
   @ViewChild('messagesContainer') private messagesContainer?: ElementRef<HTMLDivElement>;
   @ViewChild('chatListContainer') private chatListContainer?: ElementRef<HTMLDivElement>;
+  @ViewChild('messageInput') private messageInput?: ElementRef<HTMLInputElement>;
 
   darkTheme = signal(document.documentElement.classList.contains('theme-dark'));
   searchQuery = signal('');
@@ -125,6 +127,10 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
       this.scrollChatListToTop();
       this.shouldScrollChatListToTop = false;
     }
+    if (this.shouldFocusMessageInput) {
+      this.messageInput?.nativeElement.focus();
+      this.shouldFocusMessageInput = false;
+    }
   }
 
   ngOnDestroy(): void {
@@ -140,6 +146,7 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
   selectChat(chat: Chat) {
     this.selectedChat.set(chat);
     this.shouldScrollToBottom = true;
+    this.shouldFocusMessageInput = true;
   }
 
   deselectChat() {
@@ -165,6 +172,7 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
         const existing = this.chats().find(c => c.username === trimmed);
         if (existing) {
           this.selectedChat.set(existing);
+          this.shouldFocusMessageInput = true;
         } else {
           const newChat: Chat = {
             id: this.nextId++,
@@ -176,6 +184,7 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
           this.chats.update(chats => [...chats, newChat]);
           this.selectedChat.set(newChat);
           this.shouldScrollChatListToTop = true;
+          this.shouldFocusMessageInput = true;
         }
       }
     });
