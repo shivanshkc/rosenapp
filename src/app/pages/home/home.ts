@@ -1,5 +1,7 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,6 +10,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { NewChatDialog } from './new-chat-dialog';
 import { LogoutDialog } from './logout-dialog';
+import { AuthService } from '../../services/auth.service';
+import { ApiService } from '../../services/api.service';
+import { WebSocketService } from '../../services/websocket.service';
 
 interface Message {
   text: string;
@@ -36,53 +41,20 @@ interface Chat {
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
-export class Home {
+export class Home implements OnInit, OnDestroy {
   private dialog = inject(MatDialog);
-  private nextId = 4;
+  private auth = inject(AuthService);
+  private api = inject(ApiService);
+  private ws = inject(WebSocketService);
+  private router = inject(Router);
+  private messagesSub: Subscription | null = null;
+  private nextId = 1;
 
   darkTheme = signal(window.matchMedia('(prefers-color-scheme: dark)').matches);
   searchQuery = signal('');
   newMessage = '';
 
-  constructor() {
-    document.documentElement.classList.toggle('theme-dark', this.darkTheme());
-  }
-
-  chats = signal<Chat[]>([
-    {
-      id: 1,
-      username: 'Alice',
-      lastMessage: 'Hey, how are you?',
-      messages: [
-        { text: 'Hi there!', sent: false, timestamp: '10:30 AM' },
-        { text: 'Hey! How are you?', sent: true, timestamp: '10:31 AM' },
-        { text: "I'm doing great, thanks!", sent: false, timestamp: '10:32 AM' },
-        { text: "That's good to hear!", sent: true, timestamp: '10:33 AM' },
-        { text: 'Hey, how are you?', sent: false, timestamp: '10:45 AM' },
-      ],
-    },
-    {
-      id: 2,
-      username: 'Bob',
-      lastMessage: 'See you tomorrow!',
-      messages: [
-        { text: 'Are we still on for tomorrow?', sent: true, timestamp: '2:00 PM' },
-        { text: 'Yes, definitely!', sent: false, timestamp: '2:05 PM' },
-        { text: 'See you tomorrow!', sent: false, timestamp: '2:06 PM' },
-      ],
-    },
-    {
-      id: 3,
-      username: 'Charlie',
-      lastMessage: 'Thanks for the help!',
-      messages: [
-        { text: 'Can you help me with something?', sent: false, timestamp: '9:00 AM' },
-        { text: 'Sure, what do you need?', sent: true, timestamp: '9:15 AM' },
-        { text: 'Thanks for the help!', sent: false, timestamp: '9:30 AM' },
-      ],
-    },
-  ]);
-
+  chats = signal<Chat[]>([]);
   selectedChat = signal<Chat | null>(null);
 
   filteredChats = computed(() => {
@@ -90,6 +62,51 @@ export class Home {
     if (!query) return this.chats();
     return this.chats().filter(c => c.username.toLowerCase().includes(query));
   });
+
+  constructor() {
+    document.documentElement.classList.toggle('theme-dark', this.darkTheme());
+  }
+
+  ngOnInit(): void {
+    this.ws.connect().subscribe();
+
+    this.messagesSub = this.ws.messages$.subscribe(event => {
+      const currentChats = this.chats();
+      let chat = currentChats.find(c => c.username === event.sender);
+
+      const message: Message = {
+        text: event.message,
+        sent: false,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+
+      if (chat) {
+        this.chats.update(chats =>
+          chats.map(c =>
+            c.id === chat!.id
+              ? { ...c, messages: [...c.messages, message], lastMessage: event.message }
+              : c
+          )
+        );
+        if (this.selectedChat()?.id === chat.id) {
+          this.selectedChat.set(this.chats().find(c => c.id === chat!.id) ?? null);
+        }
+      } else {
+        const newChat: Chat = {
+          id: this.nextId++,
+          username: event.sender,
+          lastMessage: event.message,
+          messages: [message],
+        };
+        this.chats.update(chats => [...chats, newChat]);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.messagesSub?.unsubscribe();
+    this.ws.disconnect();
+  }
 
   toggleTheme() {
     this.darkTheme.update(v => !v);
@@ -108,7 +125,9 @@ export class Home {
     const dialogRef = this.dialog.open(LogoutDialog, { width: '320px' });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        // TODO: implement actual logout logic
+        this.ws.disconnect();
+        this.auth.clearCredentials();
+        this.router.navigate(['/login']);
       }
     });
   }
@@ -117,14 +136,20 @@ export class Home {
     const dialogRef = this.dialog.open(NewChatDialog, { width: '360px' });
     dialogRef.afterClosed().subscribe((username: string) => {
       if (username?.trim()) {
-        const newChat: Chat = {
-          id: this.nextId++,
-          username: username.trim(),
-          lastMessage: '',
-          messages: [],
-        };
-        this.chats.update(chats => [...chats, newChat]);
-        this.selectedChat.set(newChat);
+        const trimmed = username.trim();
+        const existing = this.chats().find(c => c.username === trimmed);
+        if (existing) {
+          this.selectedChat.set(existing);
+        } else {
+          const newChat: Chat = {
+            id: this.nextId++,
+            username: trimmed,
+            lastMessage: '',
+            messages: [],
+          };
+          this.chats.update(chats => [...chats, newChat]);
+          this.selectedChat.set(newChat);
+        }
       }
     });
   }
@@ -133,14 +158,36 @@ export class Home {
     const chat = this.selectedChat();
     if (!chat || !this.newMessage.trim()) return;
 
+    const text = this.newMessage.trim();
+    this.newMessage = '';
+
     const message: Message = {
-      text: this.newMessage.trim(),
+      text,
       sent: true,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
 
-    chat.messages.push(message);
-    chat.lastMessage = message.text;
-    this.newMessage = '';
+    this.chats.update(chats =>
+      chats.map(c =>
+        c.id === chat.id
+          ? { ...c, messages: [...c.messages, message], lastMessage: text }
+          : c
+      )
+    );
+    this.selectedChat.set(this.chats().find(c => c.id === chat.id) ?? null);
+
+    this.api.sendMessage({ message: text, receivers: [chat.username] }).subscribe({
+      error: () => {
+        // Remove the optimistic message on failure
+        this.chats.update(chats =>
+          chats.map(c =>
+            c.id === chat.id
+              ? { ...c, messages: c.messages.filter(m => m !== message) }
+              : c
+          )
+        );
+        this.selectedChat.set(this.chats().find(c => c.id === chat.id) ?? null);
+      },
+    });
   }
 }

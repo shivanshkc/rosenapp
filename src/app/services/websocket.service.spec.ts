@@ -5,6 +5,7 @@ import { WebSocketService, MessageReceivedEvent } from './websocket.service';
 import { AuthService } from './auth.service';
 
 class MockWebSocket {
+  onopen: (() => void) | null = null;
   onmessage: ((event: MessageEvent) => void) | null = null;
   onerror: ((event: Event) => void) | null = null;
   onclose: (() => void) | null = null;
@@ -16,6 +17,10 @@ class MockWebSocket {
   close() {
     this.closed = true;
     this.readyState = WebSocket.CLOSED;
+  }
+
+  simulateOpen() {
+    this.onopen?.();
   }
 
   simulateMessage(data: string) {
@@ -68,17 +73,31 @@ describe('WebSocketService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should connect with correct URL', () => {
-    service.connect();
+  it('should connect with correct URL and emit on open', () => {
+    let connected = false;
+    service.connect().subscribe(() => (connected = true));
+
     expect(mockSocket).toBeTruthy();
     expect(mockSocket.url).toBe('ws://localhost:8080/api/connect?username=alice&password=pass123');
+
+    mockSocket.simulateOpen();
+    expect(connected).toBe(true);
+  });
+
+  it('should error observable on connection error', () => {
+    let errored = false;
+    service.connect().subscribe({ error: () => (errored = true) });
+
+    mockSocket.simulateError();
+    expect(errored).toBe(true);
   });
 
   it('should emit MessageReceived events', () => {
     const received: MessageReceivedEvent[] = [];
     service.messages$.subscribe(msg => received.push(msg));
 
-    service.connect();
+    service.connect().subscribe();
+    mockSocket.simulateOpen();
     mockSocket.simulateMessage(JSON.stringify({
       event_type: 'MessageReceived',
       event_body: { message: 'hello', sender: 'bob' },
@@ -92,7 +111,8 @@ describe('WebSocketService', () => {
     const received: MessageReceivedEvent[] = [];
     service.messages$.subscribe(msg => received.push(msg));
 
-    service.connect();
+    service.connect().subscribe();
+    mockSocket.simulateOpen();
     mockSocket.simulateMessage(JSON.stringify({
       event_type: 'SomeOtherEvent',
       event_body: { data: 'test' },
@@ -105,24 +125,26 @@ describe('WebSocketService', () => {
     const received: MessageReceivedEvent[] = [];
     service.messages$.subscribe(msg => received.push(msg));
 
-    service.connect();
+    service.connect().subscribe();
+    mockSocket.simulateOpen();
     mockSocket.simulateMessage('not-valid-json');
 
     expect(received.length).toBe(0);
   });
 
-  it('should emit connection errors', () => {
+  it('should emit connection errors to connectionError$', () => {
     const errors: Event[] = [];
     service.connectionError$.subscribe(err => errors.push(err));
 
-    service.connect();
+    service.connect().subscribe({ error: () => {} });
     mockSocket.simulateError();
 
     expect(errors.length).toBe(1);
   });
 
   it('should disconnect and close socket', () => {
-    service.connect();
+    service.connect().subscribe();
+    mockSocket.simulateOpen();
     expect(mockSocket.closed).toBe(false);
 
     service.disconnect();
@@ -130,10 +152,11 @@ describe('WebSocketService', () => {
   });
 
   it('should close previous connection on reconnect', () => {
-    service.connect();
+    service.connect().subscribe();
     const firstSocket = mockSocket;
+    firstSocket.simulateOpen();
 
-    service.connect();
+    service.connect().subscribe();
     expect(firstSocket.closed).toBe(true);
     expect(mockSocket).not.toBe(firstSocket);
   });
@@ -141,8 +164,9 @@ describe('WebSocketService', () => {
   it('should report connection status', () => {
     expect(service.isConnected()).toBe(false);
 
-    service.connect();
+    service.connect().subscribe();
     mockSocket.readyState = WebSocket.OPEN;
+    mockSocket.simulateOpen();
     expect(service.isConnected()).toBe(true);
 
     service.disconnect();
@@ -150,7 +174,8 @@ describe('WebSocketService', () => {
   });
 
   it('should set socket to null on close event', () => {
-    service.connect();
+    service.connect().subscribe();
+    mockSocket.simulateOpen();
     mockSocket.simulateClose();
     expect(service.isConnected()).toBe(false);
   });

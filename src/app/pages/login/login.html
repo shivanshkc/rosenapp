@@ -3,20 +3,26 @@
     <h1>Welcome</h1>
     <p class="subtitle">Login to use Rosenbridge</p>
 
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+
     <mat-form-field appearance="outline">
       <mat-label>Username</mat-label>
-      <input matInput />
+      <input matInput [(ngModel)]="username" />
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Password</mat-label>
-      <input matInput [type]="passwordVisible ? 'text' : 'password'" />
+      <input matInput [(ngModel)]="password" [type]="passwordVisible ? 'text' : 'password'" (keydown.enter)="login()" />
       <button mat-icon-button matSuffix (click)="passwordVisible = !passwordVisible" type="button">
         <mat-icon>{{ passwordVisible ? 'visibility_off' : 'visibility' }}</mat-icon>
       </button>
     </mat-form-field>
 
-    <button mat-flat-button class="login-button">Login</button>
+    <button mat-flat-button class="login-button" [disabled]="!isValid || loading()" (click)="login()">
+      {{ loading() ? 'Logging in...' : 'Login' }}
+    </button>
 
     <p class="register-link">Don't have an account? <a routerLink="/register">Register</a></p>
   </div>

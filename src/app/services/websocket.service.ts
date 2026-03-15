@@ -22,30 +22,38 @@ export class WebSocketService implements OnDestroy {
   readonly messages$: Observable<MessageReceivedEvent> = this.messagesSubject.asObservable();
   readonly connectionError$: Observable<Event> = this.connectionErrorSubject.asObservable();
 
-  connect(): void {
+  connect(): Observable<void> {
     this.disconnect();
 
-    const url = this.api.getWebSocketUrl();
-    this.socket = new WebSocket(url);
+    return new Observable<void>(subscriber => {
+      const url = this.api.getWebSocketUrl();
+      this.socket = new WebSocket(url);
 
-    this.socket.onmessage = (event: MessageEvent) => {
-      try {
-        const parsed: WebSocketEvent = JSON.parse(event.data);
-        if (parsed.event_type === 'MessageReceived') {
-          this.messagesSubject.next(parsed.event_body as unknown as MessageReceivedEvent);
+      this.socket.onopen = () => {
+        subscriber.next();
+        subscriber.complete();
+      };
+
+      this.socket.onmessage = (event: MessageEvent) => {
+        try {
+          const parsed: WebSocketEvent = JSON.parse(event.data);
+          if (parsed.event_type === 'MessageReceived') {
+            this.messagesSubject.next(parsed.event_body as unknown as MessageReceivedEvent);
+          }
+        } catch {
+          // Ignore malformed messages
         }
-      } catch {
-        // Ignore malformed messages
-      }
-    };
+      };
 
-    this.socket.onerror = (event: Event) => {
-      this.connectionErrorSubject.next(event);
-    };
+      this.socket.onerror = (event: Event) => {
+        this.connectionErrorSubject.next(event);
+        subscriber.error(event);
+      };
 
-    this.socket.onclose = () => {
-      this.socket = null;
-    };
+      this.socket.onclose = () => {
+        this.socket = null;
+      };
+    });
   }
 
   disconnect(): void {
@@ -53,6 +61,7 @@ export class WebSocketService implements OnDestroy {
       this.socket.onmessage = null;
       this.socket.onerror = null;
       this.socket.onclose = null;
+      this.socket.onopen = null;
       this.socket.close();
       this.socket = null;
     }
