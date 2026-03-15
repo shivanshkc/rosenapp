@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 export interface CreateUserRequest {
   username: string;
@@ -26,23 +27,22 @@ export interface ApiError {
   reason: string;
 }
 
-const BASE_URL = 'http://localhost:8080';
-
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
+  private baseUrl = environment.apiBaseUrl;
 
   healthCheck(): Observable<HealthResponse> {
-    return this.http.get<HealthResponse>(`${BASE_URL}/api`);
+    return this.http.get<HealthResponse>(`${this.baseUrl}/api`);
   }
 
   createUser(request: CreateUserRequest): Observable<CreateUserResponse> {
-    return this.http.post<CreateUserResponse>(`${BASE_URL}/api/user`, request);
+    return this.http.post<CreateUserResponse>(`${this.baseUrl}/api/user`, request);
   }
 
   sendMessage(request: SendMessageRequest): Observable<object> {
-    return this.http.post(`${BASE_URL}/api/message`, request, {
+    return this.http.post(`${this.baseUrl}/api/message`, request, {
       headers: this.authHeaders(),
     });
   }
@@ -50,7 +50,9 @@ export class ApiService {
   getWebSocketUrl(): string {
     const creds = this.auth.credentials();
     if (!creds) throw new Error('Not authenticated');
-    return `ws://localhost:8080/api/connect?username=${encodeURIComponent(creds.username)}&password=${encodeURIComponent(creds.password)}`;
+
+    const wsBase = this.baseUrl.replace(/^http/, 'ws');
+    return `${wsBase}/api/connect?username=${encodeURIComponent(creds.username)}&password=${encodeURIComponent(creds.password)}`;
   }
 
   private authHeaders(): HttpHeaders {

@@ -50,7 +50,7 @@ export class Home implements OnInit, OnDestroy {
   private messagesSub: Subscription | null = null;
   private nextId = 1;
 
-  darkTheme = signal(window.matchMedia('(prefers-color-scheme: dark)').matches);
+  darkTheme = signal(document.documentElement.classList.contains('theme-dark'));
   searchQuery = signal('');
   newMessage = '';
 
@@ -62,10 +62,6 @@ export class Home implements OnInit, OnDestroy {
     if (!query) return this.chats();
     return this.chats().filter(c => c.username.toLowerCase().includes(query));
   });
-
-  constructor() {
-    document.documentElement.classList.toggle('theme-dark', this.darkTheme());
-  }
 
   ngOnInit(): void {
     this.ws.connect().subscribe();

@@ -1,8 +1,14 @@
+import { vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: vi.fn().mockReturnValue({ matches: false }),
+    });
+
     await TestBed.configureTestingModule({
       imports: [App],
     }).compileComponents();
