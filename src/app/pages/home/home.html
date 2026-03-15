@@ -33,7 +33,7 @@
         </mat-form-field>
       </div>
 
-      <div class="chat-list">
+      <div class="chat-list" #chatListContainer>
         @for (chat of filteredChats(); track chat.id) {
           <div class="chat-item" [class.active]="selectedChat()?.id === chat.id" (click)="selectChat(chat)">
             <div class="avatar">{{ chat.username[0] }}</div>

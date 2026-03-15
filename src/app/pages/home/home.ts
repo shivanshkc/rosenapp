@@ -25,6 +25,7 @@ interface Chat {
   id: number;
   username: string;
   lastMessage: string;
+  lastActivity: number;
   messages: Message[];
 }
 
@@ -53,8 +54,10 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
   private messagesSub: Subscription | null = null;
   private nextId = 1;
   private shouldScrollToBottom = false;
+  private shouldScrollChatListToTop = false;
 
   @ViewChild('messagesContainer') private messagesContainer?: ElementRef<HTMLDivElement>;
+  @ViewChild('chatListContainer') private chatListContainer?: ElementRef<HTMLDivElement>;
 
   darkTheme = signal(document.documentElement.classList.contains('theme-dark'));
   searchQuery = signal('');
@@ -67,8 +70,10 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
 
   filteredChats = computed(() => {
     const query = this.searchQuery().toLowerCase();
-    if (!query) return this.chats();
-    return this.chats().filter(c => c.username.toLowerCase().includes(query));
+    const chats = query
+      ? this.chats().filter(c => c.username.toLowerCase().includes(query))
+      : this.chats();
+    return [...chats].sort((a, b) => b.lastActivity - a.lastActivity);
   });
 
   ngOnInit(): void {
@@ -88,7 +93,7 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
         this.chats.update(chats =>
           chats.map(c =>
             c.id === chat!.id
-              ? { ...c, messages: [...c.messages, message], lastMessage: event.message }
+              ? { ...c, messages: [...c.messages, message], lastMessage: event.message, lastActivity: Date.now() }
               : c
           )
         );
@@ -96,14 +101,17 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
           this.selectedChat.set(this.chats().find(c => c.id === chat!.id) ?? null);
           this.shouldScrollToBottom = true;
         }
+        this.shouldScrollChatListToTop = true;
       } else {
         const newChat: Chat = {
           id: this.nextId++,
           username: event.sender,
           lastMessage: event.message,
+          lastActivity: Date.now(),
           messages: [message],
         };
         this.chats.update(chats => [...chats, newChat]);
+        this.shouldScrollChatListToTop = true;
       }
     });
   }
@@ -112,6 +120,10 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
     if (this.shouldScrollToBottom) {
       this.scrollToBottom();
       this.shouldScrollToBottom = false;
+    }
+    if (this.shouldScrollChatListToTop) {
+      this.scrollChatListToTop();
+      this.shouldScrollChatListToTop = false;
     }
   }
 
@@ -158,10 +170,12 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
             id: this.nextId++,
             username: trimmed,
             lastMessage: '',
+            lastActivity: Date.now(),
             messages: [],
           };
           this.chats.update(chats => [...chats, newChat]);
           this.selectedChat.set(newChat);
+          this.shouldScrollChatListToTop = true;
         }
       }
     });
@@ -183,12 +197,13 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
     this.chats.update(chats =>
       chats.map(c =>
         c.id === chat.id
-          ? { ...c, messages: [...c.messages, message], lastMessage: text }
+          ? { ...c, messages: [...c.messages, message], lastMessage: text, lastActivity: Date.now() }
           : c
       )
     );
     this.selectedChat.set(this.chats().find(c => c.id === chat.id) ?? null);
     this.shouldScrollToBottom = true;
+    this.shouldScrollChatListToTop = true;
 
     this.api.sendMessage({ message: text, receivers: [chat.username] }).subscribe({
       error: () => {
@@ -209,6 +224,13 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
     const el = this.messagesContainer?.nativeElement;
     if (el) {
       el.scrollTop = el.scrollHeight;
+    }
+  }
+
+  private scrollChatListToTop(): void {
+    const el = this.chatListContainer?.nativeElement;
+    if (el) {
+      el.scrollTop = 0;
     }
   }
 }
