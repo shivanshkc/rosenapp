@@ -14,6 +14,7 @@ import { LogoutDialog } from './logout-dialog';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
 import { WebSocketService, ConnectionState } from '../../services/websocket.service';
+import { playSendSound, playReceiveSound } from '../../shared/notification-sound';
 
 interface Message {
   text: string;
@@ -115,6 +116,7 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
         this.chats.update(chats => [...chats, newChat]);
         this.shouldScrollChatListToTop = true;
       }
+      playReceiveSound();
     });
   }
 
@@ -213,6 +215,7 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
     this.selectedChat.set(this.chats().find(c => c.id === chat.id) ?? null);
     this.shouldScrollToBottom = true;
     this.shouldScrollChatListToTop = true;
+    playSendSound();
 
     this.api.sendMessage({ message: text, receivers: [chat.username] }).subscribe({
       error: () => {
