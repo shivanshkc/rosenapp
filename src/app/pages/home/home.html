@@ -54,7 +54,7 @@
           <span class="chat-header-name">{{ chat.username }}</span>
         </div>
 
-        <div class="messages">
+        <div class="messages" #messagesContainer>
           @for (msg of chat.messages; track $index) {
             <div class="message" [class.sent]="msg.sent" [class.received]="!msg.sent">
               <div class="bubble">

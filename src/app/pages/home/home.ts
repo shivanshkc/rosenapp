@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, computed, inject, signal, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -41,7 +41,7 @@ interface Chat {
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
-export class Home implements OnInit, OnDestroy {
+export class Home implements OnInit, OnDestroy, AfterViewChecked {
   private dialog = inject(MatDialog);
   private auth = inject(AuthService);
   private api = inject(ApiService);
@@ -49,6 +49,9 @@ export class Home implements OnInit, OnDestroy {
   private router = inject(Router);
   private messagesSub: Subscription | null = null;
   private nextId = 1;
+  private shouldScrollToBottom = false;
+
+  @ViewChild('messagesContainer') private messagesContainer?: ElementRef<HTMLDivElement>;
 
   darkTheme = signal(document.documentElement.classList.contains('theme-dark'));
   searchQuery = signal('');
@@ -86,6 +89,7 @@ export class Home implements OnInit, OnDestroy {
         );
         if (this.selectedChat()?.id === chat.id) {
           this.selectedChat.set(this.chats().find(c => c.id === chat!.id) ?? null);
+          this.shouldScrollToBottom = true;
         }
       } else {
         const newChat: Chat = {
@@ -97,6 +101,13 @@ export class Home implements OnInit, OnDestroy {
         this.chats.update(chats => [...chats, newChat]);
       }
     });
+  }
+
+  ngAfterViewChecked(): void {
+    if (this.shouldScrollToBottom) {
+      this.scrollToBottom();
+      this.shouldScrollToBottom = false;
+    }
   }
 
   ngOnDestroy(): void {
@@ -111,6 +122,7 @@ export class Home implements OnInit, OnDestroy {
 
   selectChat(chat: Chat) {
     this.selectedChat.set(chat);
+    this.shouldScrollToBottom = true;
   }
 
   deselectChat() {
@@ -171,10 +183,10 @@ export class Home implements OnInit, OnDestroy {
       )
     );
     this.selectedChat.set(this.chats().find(c => c.id === chat.id) ?? null);
+    this.shouldScrollToBottom = true;
 
     this.api.sendMessage({ message: text, receivers: [chat.username] }).subscribe({
       error: () => {
-        // Remove the optimistic message on failure
         this.chats.update(chats =>
           chats.map(c =>
             c.id === chat.id
@@ -185,5 +197,12 @@ export class Home implements OnInit, OnDestroy {
         this.selectedChat.set(this.chats().find(c => c.id === chat.id) ?? null);
       },
     });
+  }
+
+  private scrollToBottom(): void {
+    const el = this.messagesContainer?.nativeElement;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
   }
 }
