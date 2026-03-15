@@ -22,7 +22,7 @@
 
     <mat-form-field appearance="outline">
       <mat-label>Repeat password</mat-label>
-      <input matInput [(ngModel)]="repeatPassword" [type]="repeatPasswordVisible ? 'text' : 'password'" />
+      <input matInput [(ngModel)]="repeatPassword" [type]="repeatPasswordVisible ? 'text' : 'password'" (keydown.enter)="register()" />
       <button mat-icon-button matSuffix (click)="repeatPasswordVisible = !repeatPasswordVisible" type="button">
         <mat-icon>{{ repeatPasswordVisible ? 'visibility_off' : 'visibility' }}</mat-icon>
       </button>

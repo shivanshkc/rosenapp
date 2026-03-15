@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,7 +19,7 @@ import { MatButtonModule } from '@angular/material/button';
     <mat-dialog-content>
       <mat-form-field appearance="outline">
         <mat-label>Username</mat-label>
-        <input matInput [(ngModel)]="username" />
+        <input matInput [(ngModel)]="username" (keydown.enter)="submit()" />
       </mat-form-field>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
@@ -37,5 +37,12 @@ import { MatButtonModule } from '@angular/material/button';
   `,
 })
 export class NewChatDialog {
+  private dialogRef = inject(MatDialogRef<NewChatDialog>);
   username = '';
+
+  submit() {
+    if (this.username.trim()) {
+      this.dialogRef.close(this.username);
+    }
+  }
 }
