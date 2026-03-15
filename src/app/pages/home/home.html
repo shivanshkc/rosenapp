@@ -1,7 +1,10 @@
 <div class="home-layout" [class.chat-open]="selectedChat()">
   <!-- Top bar -->
   <mat-toolbar>
-    <span class="branding">Rosenbridge</span>
+    <span class="branding">
+      <mat-icon class="branding-icon">hub</mat-icon>
+      Rosenbridge
+    </span>
     <span class="spacer"></span>
     <button mat-icon-button (click)="toggleTheme()">
       <mat-icon>{{ darkTheme() ? 'light_mode' : 'dark_mode' }}</mat-icon>

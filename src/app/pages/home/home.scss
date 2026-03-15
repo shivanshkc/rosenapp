@@ -26,9 +26,21 @@ mat-toolbar {
 }
 
 .branding {
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--mat-sys-primary);
+}
+
+.branding-icon {
+  font-size: 1.3rem;
+  width: 1.3rem;
+  height: 1.3rem;
+  color: var(--mat-sys-primary);
 }
 
 .spacer {
