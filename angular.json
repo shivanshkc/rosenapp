@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "rosenbridge-web-client": {
+    "rosenapp": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -67,10 +67,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "rosenbridge-web-client:build:production"
+              "buildTarget": "rosenapp:build:production"
             },
             "development": {
-              "buildTarget": "rosenbridge-web-client:build:development"
+              "buildTarget": "rosenapp:build:development"
             }
           },
           "defaultConfiguration": "development"

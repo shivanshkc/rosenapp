@@ -5,7 +5,7 @@ export interface Credentials {
   password: string;
 }
 
-const STORAGE_KEY = 'rosenbridge_credentials';
+const STORAGE_KEY = 'rosenapp_credentials';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

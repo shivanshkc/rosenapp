@@ -31,7 +31,7 @@ describe('AuthService', () => {
     expect(service.credentials()).toEqual({ username: 'alice', password: 'pass123' });
     expect(service.username()).toBe('alice');
 
-    const stored = sessionStorage.getItem('rosenbridge_credentials');
+    const stored = sessionStorage.getItem('rosenapp_credentials');
     expect(stored).toBeTruthy();
     expect(JSON.parse(stored!)).toEqual({ username: 'alice', password: 'pass123' });
   });
@@ -42,7 +42,7 @@ describe('AuthService', () => {
 
     expect(service.isLoggedIn()).toBe(false);
     expect(service.credentials()).toBeNull();
-    expect(sessionStorage.getItem('rosenbridge_credentials')).toBeNull();
+    expect(sessionStorage.getItem('rosenapp_credentials')).toBeNull();
   });
 
   it('should generate correct Basic Auth header', () => {
@@ -57,7 +57,7 @@ describe('AuthService', () => {
 
   it('should load credentials from sessionStorage on init', () => {
     sessionStorage.setItem(
-      'rosenbridge_credentials',
+      'rosenapp_credentials',
       JSON.stringify({ username: 'bob', password: 'secret' })
     );
 
@@ -67,7 +67,7 @@ describe('AuthService', () => {
   });
 
   it('should handle corrupted sessionStorage data', () => {
-    sessionStorage.setItem('rosenbridge_credentials', 'not-json');
+    sessionStorage.setItem('rosenapp_credentials', 'not-json');
 
     const freshService = new AuthService();
     expect(freshService.isLoggedIn()).toBe(false);
@@ -75,7 +75,7 @@ describe('AuthService', () => {
   });
 
   it('should handle incomplete sessionStorage data', () => {
-    sessionStorage.setItem('rosenbridge_credentials', JSON.stringify({ username: 'alice' }));
+    sessionStorage.setItem('rosenapp_credentials', JSON.stringify({ username: 'alice' }));
 
     const freshService = new AuthService();
     expect(freshService.isLoggedIn()).toBe(false);
