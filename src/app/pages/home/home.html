@@ -6,8 +6,8 @@
     <button mat-icon-button (click)="toggleTheme()">
       <mat-icon>{{ darkTheme() ? 'light_mode' : 'dark_mode' }}</mat-icon>
     </button>
-    <button mat-button class="logout-text" (click)="deselectChat()">Logout</button>
-    <button mat-icon-button class="logout-icon" (click)="deselectChat()">
+    <button mat-button class="logout-text" (click)="logout()">Logout</button>
+    <button mat-icon-button class="logout-icon" (click)="logout()">
       <mat-icon>logout</mat-icon>
     </button>
   </mat-toolbar>

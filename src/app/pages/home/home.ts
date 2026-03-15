@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { NewChatDialog } from './new-chat-dialog';
+import { LogoutDialog } from './logout-dialog';
 
 interface Message {
   text: string;
@@ -101,6 +102,15 @@ export class Home {
 
   deselectChat() {
     this.selectedChat.set(null);
+  }
+
+  logout() {
+    const dialogRef = this.dialog.open(LogoutDialog, { width: '320px' });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        // TODO: implement actual logout logic
+      }
+    });
   }
 
   openNewChatDialog() {
