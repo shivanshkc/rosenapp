@@ -58,7 +58,7 @@
           @for (msg of chat.messages; track $index) {
             <div class="message" [class.sent]="msg.sent" [class.received]="!msg.sent">
               <div class="bubble">
-                <span class="text">{{ msg.text }}</span>
+                {{ msg.text }}
                 <span class="timestamp">{{ msg.timestamp }}</span>
               </div>
             </div>
