@@ -7,7 +7,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { Subject, of } from 'rxjs';
 import { Home } from './home';
 import { AuthService } from '../../services/auth.service';
-import { WebSocketService, MessageReceivedEvent } from '../../services/websocket.service';
+import { WebSocketService, MessageReceivedEvent, ConnectionState } from '../../services/websocket.service';
 
 describe('Home', () => {
   let component: Home;

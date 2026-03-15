@@ -1,3 +1,4 @@
+import { vi, beforeEach, afterEach, describe, it, expect } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -43,6 +44,7 @@ describe('WebSocketService', () => {
   let originalWebSocket: typeof WebSocket;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     sessionStorage.clear();
     originalWebSocket = globalThis.WebSocket;
 
@@ -67,10 +69,15 @@ describe('WebSocketService', () => {
     service.disconnect();
     sessionStorage.clear();
     globalThis.WebSocket = originalWebSocket;
+    vi.useRealTimers();
   });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('should start in disconnected state', () => {
+    expect(service.state()).toBe('disconnected');
   });
 
   it('should connect with correct URL and emit on open', () => {
@@ -79,9 +86,11 @@ describe('WebSocketService', () => {
 
     expect(mockSocket).toBeTruthy();
     expect(mockSocket.url).toBe('ws://localhost:8080/api/connect?username=alice&password=pass123');
+    expect(service.state()).toBe('connecting');
 
     mockSocket.simulateOpen();
     expect(connected).toBe(true);
+    expect(service.state()).toBe('connected');
   });
 
   it('should error observable on connection error', () => {
@@ -149,6 +158,7 @@ describe('WebSocketService', () => {
 
     service.disconnect();
     expect(mockSocket.closed).toBe(true);
+    expect(service.state()).toBe('disconnected');
   });
 
   it('should close previous connection on reconnect', () => {
@@ -178,5 +188,134 @@ describe('WebSocketService', () => {
     mockSocket.simulateOpen();
     mockSocket.simulateClose();
     expect(service.isConnected()).toBe(false);
+  });
+
+  describe('auto-reconnect', () => {
+    it('should schedule reconnect on unexpected close', () => {
+      service.connect().subscribe();
+      mockSocket.simulateOpen();
+
+      mockSocket.simulateClose();
+      expect(service.state()).toBe('reconnecting');
+    });
+
+    it('should attempt reconnect after delay', () => {
+      service.connect().subscribe();
+      const firstSocket = mockSocket;
+      firstSocket.simulateOpen();
+
+      firstSocket.simulateClose();
+      expect(service.state()).toBe('reconnecting');
+
+      vi.advanceTimersByTime(1000);
+      expect(mockSocket).not.toBe(firstSocket);
+    });
+
+    it('should transition to connected on successful reconnect', () => {
+      service.connect().subscribe();
+      mockSocket.simulateOpen();
+
+      mockSocket.simulateClose();
+      vi.advanceTimersByTime(1000);
+
+      mockSocket.simulateOpen();
+      expect(service.state()).toBe('connected');
+    });
+
+    it('should use exponential backoff', () => {
+      service.connect().subscribe();
+      mockSocket.simulateOpen();
+
+      // First close: 1s delay
+      const socket1 = mockSocket;
+      socket1.simulateClose();
+      vi.advanceTimersByTime(999);
+      expect(mockSocket).toBe(socket1); // not reconnected yet
+      vi.advanceTimersByTime(1);
+      expect(mockSocket).not.toBe(socket1);
+
+      // Second close: 2s delay
+      const socket2 = mockSocket;
+      socket2.simulateClose();
+      vi.advanceTimersByTime(1999);
+      expect(mockSocket).toBe(socket2);
+      vi.advanceTimersByTime(1);
+      expect(mockSocket).not.toBe(socket2);
+
+      // Third close: 4s delay
+      const socket3 = mockSocket;
+      socket3.simulateClose();
+      vi.advanceTimersByTime(3999);
+      expect(mockSocket).toBe(socket3);
+      vi.advanceTimersByTime(1);
+      expect(mockSocket).not.toBe(socket3);
+    });
+
+    it('should reset backoff on successful reconnect', () => {
+      service.connect().subscribe();
+      mockSocket.simulateOpen();
+
+      // Close and reconnect twice to increase backoff
+      mockSocket.simulateClose();
+      vi.advanceTimersByTime(1000);
+      mockSocket.simulateClose();
+      vi.advanceTimersByTime(2000);
+
+      // Successful reconnect resets delay
+      mockSocket.simulateOpen();
+      mockSocket.simulateClose();
+
+      // Should use initial delay (1s) again
+      const socketBeforeRetry = mockSocket;
+      vi.advanceTimersByTime(1000);
+      expect(mockSocket).not.toBe(socketBeforeRetry);
+    });
+
+    it('should not reconnect after intentional disconnect', () => {
+      service.connect().subscribe();
+      mockSocket.simulateOpen();
+
+      service.disconnect();
+      expect(service.state()).toBe('disconnected');
+
+      vi.advanceTimersByTime(60000);
+      expect(service.state()).toBe('disconnected');
+    });
+
+    it('should stop reconnect attempts when disconnect is called', () => {
+      service.connect().subscribe();
+      mockSocket.simulateOpen();
+
+      mockSocket.simulateClose();
+      expect(service.state()).toBe('reconnecting');
+
+      service.disconnect();
+      expect(service.state()).toBe('disconnected');
+
+      vi.advanceTimersByTime(60000);
+      expect(service.state()).toBe('disconnected');
+    });
+
+    it('should receive messages after reconnect', () => {
+      const received: MessageReceivedEvent[] = [];
+      service.messages$.subscribe(msg => received.push(msg));
+
+      service.connect().subscribe();
+      mockSocket.simulateOpen();
+
+      // Connection drops
+      mockSocket.simulateClose();
+      vi.advanceTimersByTime(1000);
+
+      // Reconnected
+      mockSocket.simulateOpen();
+      mockSocket.simulateMessage(JSON.stringify({
+        event_type: 'MessageReceived',
+        event_body: { message: 'hello after reconnect', sender: 'bob' },
+      }));
+
+      expect(received.length).toBe(1);
+      expect(received[0].message).toBe('hello after reconnect');
+    });
   });
 });

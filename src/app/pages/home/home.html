@@ -15,6 +15,13 @@
     </button>
   </mat-toolbar>
 
+  @if (connectionState() === 'reconnecting') {
+    <div class="reconnecting-banner">
+      <mat-icon>sync</mat-icon>
+      Reconnecting...
+    </div>
+  }
+
   <!-- Content -->
   <div class="content">
     <!-- Sidebar -->

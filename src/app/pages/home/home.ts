@@ -12,7 +12,7 @@ import { NewChatDialog } from './new-chat-dialog';
 import { LogoutDialog } from './logout-dialog';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
-import { WebSocketService } from '../../services/websocket.service';
+import { WebSocketService, ConnectionState } from '../../services/websocket.service';
 
 interface Message {
   text: string;
@@ -56,6 +56,8 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
   darkTheme = signal(document.documentElement.classList.contains('theme-dark'));
   searchQuery = signal('');
   newMessage = '';
+
+  connectionState = computed<ConnectionState>(() => this.ws.state());
 
   chats = signal<Chat[]>([]);
   selectedChat = signal<Chat | null>(null);
