@@ -7,12 +7,14 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { Subject, of } from 'rxjs';
 import { Home } from './home';
 import { AuthService } from '../../services/auth.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { WebSocketService, MessageReceivedEvent, ConnectionState } from '../../services/websocket.service';
 
 describe('Home', () => {
   let component: Home;
   let authService: AuthService;
   let wsService: WebSocketService;
+  let snackBar: MatSnackBar;
   let httpMock: HttpTestingController;
   let router: Router;
   let messagesSubject: Subject<MessageReceivedEvent>;
@@ -58,6 +60,8 @@ describe('Home', () => {
 
     const fixture = TestBed.createComponent(Home);
     component = fixture.componentInstance;
+    snackBar = (component as any).snackBar;
+    vi.spyOn(snackBar, 'open');
     fixture.detectChanges();
   });
 
@@ -132,7 +136,7 @@ describe('Home', () => {
       req.flush({});
     });
 
-    it('should remove optimistic message on API error', () => {
+    it('should remove optimistic message and show snackbar on API error', () => {
       component.newMessage = 'hi alice';
       component.sendMessage();
 
@@ -140,6 +144,7 @@ describe('Home', () => {
       req.flush({}, { status: 500, statusText: 'Server Error' });
 
       expect(component.selectedChat()!.messages.length).toBe(1);
+      expect(snackBar.open).toHaveBeenCalledWith('Message failed to send', 'Dismiss', { duration: 4000 });
     });
 
     it('should not send empty message', () => {

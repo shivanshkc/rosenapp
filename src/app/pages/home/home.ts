@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { NewChatDialog } from './new-chat-dialog';
 import { LogoutDialog } from './logout-dialog';
 import { AuthService } from '../../services/auth.service';
@@ -37,12 +38,14 @@ interface Chat {
     MatFormFieldModule,
     MatInputModule,
     MatDialogModule,
+    MatSnackBarModule,
   ],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
 export class Home implements OnInit, OnDestroy, AfterViewChecked {
   private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
   private auth = inject(AuthService);
   private api = inject(ApiService);
   private ws = inject(WebSocketService);
@@ -197,6 +200,7 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
           )
         );
         this.selectedChat.set(this.chats().find(c => c.id === chat.id) ?? null);
+        this.snackBar.open('Message failed to send', 'Dismiss', { duration: 4000 });
       },
     });
   }
