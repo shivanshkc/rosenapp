@@ -6,4 +6,5 @@ export const routes: Routes = [
   { path: 'register', loadComponent: () => import('./pages/register/register').then(m => m.Register), canActivate: [guestGuard] },
   { path: 'home', loadComponent: () => import('./pages/home/home').then(m => m.Home), canActivate: [authGuard] },
   { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: '**', redirectTo: 'home' },
 ];
