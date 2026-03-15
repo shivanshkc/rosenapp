@@ -1,3 +1,3 @@
 export const environment = {
-  apiBaseUrl: 'https://your-production-host.com',
+  apiBaseUrl: 'http://localhost:8080',
 };
