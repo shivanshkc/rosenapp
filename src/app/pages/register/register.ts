@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { isValidUsername, isValidPassword } from '../../shared/validation';
 
 @Component({
   selector: 'app-register',
@@ -35,15 +36,10 @@ export class Register {
   loading = signal(false);
   error = signal('');
 
-  private readonly usernamePattern = /^[a-zA-Z0-9_-]+$/;
-
   get isValid(): boolean {
     return (
-      this.username.length >= 3 &&
-      this.username.length <= 100 &&
-      this.usernamePattern.test(this.username) &&
-      this.password.length >= 3 &&
-      this.password.length <= 100 &&
+      isValidUsername(this.username) &&
+      isValidPassword(this.password) &&
       this.password === this.repeatPassword
     );
   }

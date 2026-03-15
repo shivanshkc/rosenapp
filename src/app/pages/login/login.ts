@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
 import { WebSocketService } from '../../services/websocket.service';
+import { isValidUsername, isValidPassword } from '../../shared/validation';
 
 @Component({
   selector: 'app-login',
@@ -32,16 +33,8 @@ export class Login {
   loading = signal(false);
   error = signal('');
 
-  private readonly usernamePattern = /^[a-zA-Z0-9_-]+$/;
-
   get isValid(): boolean {
-    return (
-      this.username.length >= 3 &&
-      this.username.length <= 100 &&
-      this.usernamePattern.test(this.username) &&
-      this.password.length >= 3 &&
-      this.password.length <= 100
-    );
+    return isValidUsername(this.username) && isValidPassword(this.password);
   }
 
   login(): void {
