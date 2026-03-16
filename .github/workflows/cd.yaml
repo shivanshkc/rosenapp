@@ -1,0 +1,45 @@
+name: CD
+on:
+  # Runs on all push events on main.
+  push:
+    branches: [ main ]
+
+permissions:
+  # Can only read the source code.
+  contents: read
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+
+      # - name: Run linter
+      #   run: npm ci && npm run lint
+      #   shell: bash
+
+      - name: Run build
+        run: npm ci && npm run build
+        shell: bash
+
+      - name: Run tests
+        run: npm run test
+
+  semver:
+    name: Semver
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/semver
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}

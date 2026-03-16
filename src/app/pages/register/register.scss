@@ -1,0 +1,68 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 360px;
+  padding: 1rem;
+
+  h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+  }
+
+  .subtitle {
+    margin: 0.75rem 0 2rem;
+    font-size: 0.9rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .error {
+    margin: 0 0 1rem;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--mat-sys-on-error-container);
+    background: var(--mat-sys-error-container);
+    border-radius: 0.5rem;
+  }
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  .register-button {
+    margin-top: 0.5rem;
+    align-self: center;
+    padding-inline: 3rem;
+  }
+
+  .login-link {
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--mat-sys-on-surface-variant);
+    margin-top: 1.5rem;
+
+    a {
+      color: var(--mat-sys-primary);
+      text-decoration: none;
+      font-weight: 500;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}

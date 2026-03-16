@@ -1,0 +1,31 @@
+name: CI
+on:
+  # Runs on all pull-request events on all branches.
+  pull_request:
+
+permissions:
+  # Can only read the source code.
+  contents: read
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'lts/*'
+
+      # - name: Run linter
+      #   run: npm ci && npm run lint
+      #   shell: bash
+
+      - name: Run build
+        run: npm ci && npm run build
+        shell: bash
+
+      - name: Run tests
+        run: npm run test
