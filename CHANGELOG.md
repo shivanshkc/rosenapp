@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/shivanshkc/rosenapp/compare/v3.0.0...v3.0.1) (2026-03-16)
+
+
+### Bug Fixes
+
+* **ui:** correct scroll behaviour with keyboard ([c6a4adf](https://github.com/shivanshkc/rosenapp/commit/c6a4adf37e86e6f2b3051a9f96f422758fb58d8b))
+
 # [3.0.0](https://github.com/shivanshkc/rosenapp/compare/v2.0.0...v3.0.0) (2026-03-16)
 
 
