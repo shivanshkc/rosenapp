@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { WebSocketService, MessageReceivedEvent } from './websocket.service';
 import { AuthService } from './auth.service';
+import { AppConfigService } from './app-config.service';
 
 class MockWebSocket {
   onopen: (() => void) | null = null;
@@ -58,7 +59,11 @@ describe('WebSocketService', () => {
     (globalThis as any).WebSocket.CLOSED = 3;
 
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: AppConfigService, useValue: { apiBaseUrl: 'http://localhost:8080' } },
+      ],
     });
     service = TestBed.inject(WebSocketService);
     authService = TestBed.inject(AuthService);

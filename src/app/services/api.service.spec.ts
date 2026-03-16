@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
+import { AppConfigService } from './app-config.service';
 
 describe('ApiService', () => {
   let service: ApiService;
@@ -12,7 +13,11 @@ describe('ApiService', () => {
   beforeEach(() => {
     sessionStorage.clear();
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: AppConfigService, useValue: { apiBaseUrl: 'http://localhost:8080' } },
+      ],
     });
     service = TestBed.inject(ApiService);
     httpMock = TestBed.inject(HttpTestingController);

@@ -6,6 +6,7 @@ import { provideRouter, Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { WebSocketService } from './websocket.service';
 import { authInterceptor } from './auth.interceptor';
+import { AppConfigService } from './app-config.service';
 
 describe('authInterceptor', () => {
   let http: HttpClient;
@@ -21,6 +22,7 @@ describe('authInterceptor', () => {
         provideHttpClient(withInterceptors([authInterceptor])),
         provideHttpClientTesting(),
         provideRouter([]),
+        { provide: AppConfigService, useValue: { apiBaseUrl: 'http://localhost:8080' } },
       ],
     });
 

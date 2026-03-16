@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
-import { environment } from '../../environments/environment';
+import { AppConfigService } from './app-config.service';
 
 export interface CreateUserRequest {
   username: string;
@@ -31,7 +31,11 @@ export interface ApiError {
 export class ApiService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
-  private baseUrl = environment.apiBaseUrl;
+  private config = inject(AppConfigService);
+
+  private get baseUrl(): string {
+    return this.config.apiBaseUrl;
+  }
 
   healthCheck(): Observable<HealthResponse> {
     return this.http.get<HealthResponse>(`${this.baseUrl}/api`);

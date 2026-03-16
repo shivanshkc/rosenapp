@@ -8,6 +8,7 @@ import { of, throwError } from 'rxjs';
 import { Login } from './login';
 import { AuthService } from '../../services/auth.service';
 import { WebSocketService } from '../../services/websocket.service';
+import { AppConfigService } from '../../services/app-config.service';
 
 describe('Login', () => {
   let component: Login;
@@ -24,6 +25,7 @@ describe('Login', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         provideAnimationsAsync(),
+        { provide: AppConfigService, useValue: { apiBaseUrl: 'http://localhost:8080' } },
       ],
     }).compileComponents();
 

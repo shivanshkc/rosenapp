@@ -6,6 +6,7 @@ import { provideRouter, Router } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { Register } from './register';
 import { AuthService } from '../../services/auth.service';
+import { AppConfigService } from '../../services/app-config.service';
 
 describe('Register', () => {
   let component: Register;
@@ -22,6 +23,7 @@ describe('Register', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         provideAnimationsAsync(),
+        { provide: AppConfigService, useValue: { apiBaseUrl: 'http://localhost:8080' } },
       ],
     }).compileComponents();
 

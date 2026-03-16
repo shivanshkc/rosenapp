@@ -9,6 +9,7 @@ import { Home } from './home';
 import { AuthService } from '../../services/auth.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { WebSocketService, MessageReceivedEvent, ConnectionState } from '../../services/websocket.service';
+import { AppConfigService } from '../../services/app-config.service';
 
 describe('Home', () => {
   let component: Home;
@@ -44,6 +45,7 @@ describe('Home', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         provideAnimationsAsync(),
+        { provide: AppConfigService, useValue: { apiBaseUrl: 'http://localhost:8080' } },
       ],
     }).compileComponents();
 
