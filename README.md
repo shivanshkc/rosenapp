@@ -1,6 +1,12 @@
 # RosenApp
 
-A minimal chat application powered by [Rosenbridge](https://github.com/shivanshkc/rosenbridge).
+A real-time chat application built with Angular and powered by [Rosenbridge](https://github.com/shivanshkc/rosenbridge). Features include user authentication, WebSocket-based messaging, and a Material Design interface with dark and light theme support.
+
+## Tech Stack
+
+- Angular 21 (standalone components)
+- Angular Material and CDK
+- TypeScript 5.9
 
 ## Prerequisites
 
@@ -14,32 +20,34 @@ A minimal chat application powered by [Rosenbridge](https://github.com/shivanshk
 npm install
 ```
 
-## Development
+## Configuration
+
+The app loads its backend URL from `public/config.json` at startup:
+
+```json
+{
+  "apiBaseUrl": "https://rosenbridge.shivansh.io"
+}
+```
+
+Change this to point to your own Rosenbridge instance if needed.
+
+## Common Commands
 
 ```bash
-npm start
+npm start     # Starts the dev server at http://localhost:4200
+npm run watch # For continuous rebuilds during development
+npm test      # Run unit tests
+npm run build # Production build, written to dist/
 ```
 
-Opens at [http://localhost:4200](http://localhost:4200). The app expects the backend at `http://localhost:8080` by default.
+## Project Structure
 
-To change the backend URL, edit `src/environments/environment.ts`:
-
-```typescript
-export const environment = {
-  apiBaseUrl: 'http://localhost:8080',
-};
 ```
-
-## Tests
-
-```bash
-npm test
+src/app/
+├── pages/          # Login, Register, Home
+├── services/       # Auth, API, WebSocket, AppConfig
+├── shared/         # Validation helpers, notification sounds
+├── app.routes.ts   # Route definitions with guards
+└── app.ts          # Root component
 ```
-
-## Production Build
-
-```bash
-npm run build
-```
-
-Output goes to `dist/`. Set your production backend URL in `src/environments/environment.production.ts` before building.
