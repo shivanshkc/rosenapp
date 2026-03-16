@@ -48,7 +48,7 @@ describe('Home', () => {
     }).compileComponents();
 
     authService = TestBed.inject(AuthService);
-    authService.saveCredentials('testuser', 'pass123');
+    authService.saveCredentials('testuser', 'dummy-password');
 
     wsService = TestBed.inject(WebSocketService);
     vi.spyOn(wsService, 'connect').mockReturnValue(of(undefined));

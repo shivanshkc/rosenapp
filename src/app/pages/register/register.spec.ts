@@ -48,15 +48,15 @@ describe('Register', () => {
 
     it('should be invalid when username is too short', () => {
       component.username = 'ab';
-      component.password = 'pass123';
-      component.repeatPassword = 'pass123';
+      component.password = 'dummy-password';
+      component.repeatPassword = 'dummy-password';
       expect(component.isValid).toBe(false);
     });
 
     it('should be invalid when username has invalid characters', () => {
       component.username = 'user@name';
-      component.password = 'pass123';
-      component.repeatPassword = 'pass123';
+      component.password = 'dummy-password';
+      component.repeatPassword = 'dummy-password';
       expect(component.isValid).toBe(false);
     });
 
@@ -69,22 +69,22 @@ describe('Register', () => {
 
     it('should be invalid when passwords do not match', () => {
       component.username = 'alice';
-      component.password = 'pass123';
-      component.repeatPassword = 'pass456';
+      component.password = 'dummy-password';
+      component.repeatPassword = 'dummy-password-1';
       expect(component.isValid).toBe(false);
     });
 
     it('should be valid with correct input', () => {
       component.username = 'alice';
-      component.password = 'pass123';
-      component.repeatPassword = 'pass123';
+      component.password = 'dummy-password';
+      component.repeatPassword = 'dummy-password';
       expect(component.isValid).toBe(true);
     });
 
     it('should accept underscores and hyphens in username', () => {
       component.username = 'alice_bob-123';
-      component.password = 'pass123';
-      component.repeatPassword = 'pass123';
+      component.password = 'dummy-password';
+      component.repeatPassword = 'dummy-password';
       expect(component.isValid).toBe(true);
     });
   });
@@ -92,8 +92,8 @@ describe('Register', () => {
   describe('register', () => {
     beforeEach(() => {
       component.username = 'alice';
-      component.password = 'pass123';
-      component.repeatPassword = 'pass123';
+      component.password = 'dummy-password';
+      component.repeatPassword = 'dummy-password';
     });
 
     it('should call API and navigate on success', () => {
@@ -103,7 +103,7 @@ describe('Register', () => {
       expect(component.loading()).toBe(true);
 
       const req = httpMock.expectOne('http://localhost:8080/api/user');
-      expect(req.request.body).toEqual({ username: 'alice', password: 'pass123' });
+      expect(req.request.body).toEqual({ username: 'alice', password: 'dummy-password' });
       req.flush({ username: 'alice' });
 
       expect(authService.isLoggedIn()).toBe(true);

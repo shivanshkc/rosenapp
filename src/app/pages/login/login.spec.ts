@@ -49,13 +49,13 @@ describe('Login', () => {
 
     it('should be invalid when username is too short', () => {
       component.username = 'ab';
-      component.password = 'pass123';
+      component.password = 'dummy-password';
       expect(component.isValid).toBe(false);
     });
 
     it('should be invalid when username has invalid characters', () => {
       component.username = 'user@name';
-      component.password = 'pass123';
+      component.password = 'dummy-password';
       expect(component.isValid).toBe(false);
     });
 
@@ -67,7 +67,7 @@ describe('Login', () => {
 
     it('should be valid with correct input', () => {
       component.username = 'alice';
-      component.password = 'pass123';
+      component.password = 'dummy-password';
       expect(component.isValid).toBe(true);
     });
   });
@@ -75,7 +75,7 @@ describe('Login', () => {
   describe('login', () => {
     beforeEach(() => {
       component.username = 'alice';
-      component.password = 'pass123';
+      component.password = 'dummy-password';
     });
 
     it('should save credentials and navigate on successful WebSocket connect', () => {

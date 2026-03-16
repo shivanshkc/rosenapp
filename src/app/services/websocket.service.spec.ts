@@ -62,7 +62,7 @@ describe('WebSocketService', () => {
     });
     service = TestBed.inject(WebSocketService);
     authService = TestBed.inject(AuthService);
-    authService.saveCredentials('alice', 'pass123');
+    authService.saveCredentials('alice', 'dummy-password');
   });
 
   afterEach(() => {
@@ -85,7 +85,7 @@ describe('WebSocketService', () => {
     service.connect().subscribe(() => (connected = true));
 
     expect(mockSocket).toBeTruthy();
-    expect(mockSocket.url).toBe('ws://localhost:8080/api/connect?username=alice&password=pass123');
+    expect(mockSocket.url).toBe('ws://localhost:8080/api/connect?username=alice&password=dummy-password');
     expect(service.state()).toBe('connecting');
 
     mockSocket.simulateOpen();

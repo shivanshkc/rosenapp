@@ -23,7 +23,7 @@ describe('Guards', () => {
 
   describe('authGuard', () => {
     it('should allow access when logged in', () => {
-      authService.saveCredentials('alice', 'pass123');
+      authService.saveCredentials('alice', 'dummy-password');
       const result = TestBed.runInInjectionContext(() => authGuard({} as any, {} as any));
       expect(result).toBe(true);
     });
@@ -42,7 +42,7 @@ describe('Guards', () => {
     });
 
     it('should redirect to /home when logged in', () => {
-      authService.saveCredentials('alice', 'pass123');
+      authService.saveCredentials('alice', 'dummy-password');
       const result = TestBed.runInInjectionContext(() => guestGuard({} as any, {} as any));
       expect(result).toBeInstanceOf(UrlTree);
       expect((result as UrlTree).toString()).toBe('/home');

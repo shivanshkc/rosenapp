@@ -25,19 +25,19 @@ describe('AuthService', () => {
   });
 
   it('should save credentials to sessionStorage', () => {
-    service.saveCredentials('alice', 'pass123');
+    service.saveCredentials('alice', 'dummy-password');
 
     expect(service.isLoggedIn()).toBe(true);
-    expect(service.credentials()).toEqual({ username: 'alice', password: 'pass123' });
+    expect(service.credentials()).toEqual({ username: 'alice', password: 'dummy-password' });
     expect(service.username()).toBe('alice');
 
     const stored = sessionStorage.getItem('rosenapp_credentials');
     expect(stored).toBeTruthy();
-    expect(JSON.parse(stored!)).toEqual({ username: 'alice', password: 'pass123' });
+    expect(JSON.parse(stored!)).toEqual({ username: 'alice', password: 'dummy-password' });
   });
 
   it('should clear credentials on logout', () => {
-    service.saveCredentials('alice', 'pass123');
+    service.saveCredentials('alice', 'dummy-password');
     service.clearCredentials();
 
     expect(service.isLoggedIn()).toBe(false);
@@ -46,9 +46,9 @@ describe('AuthService', () => {
   });
 
   it('should generate correct Basic Auth header', () => {
-    service.saveCredentials('alice', 'pass123');
+    service.saveCredentials('alice', 'dummy-password');
     const header = service.getAuthHeader();
-    expect(header).toBe('Basic ' + btoa('alice:pass123'));
+    expect(header).toBe('Basic ' + btoa('alice:dummy-password'));
   });
 
   it('should return null auth header when not logged in', () => {

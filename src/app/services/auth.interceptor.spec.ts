@@ -30,7 +30,7 @@ describe('authInterceptor', () => {
     wsService = TestBed.inject(WebSocketService);
     router = TestBed.inject(Router);
 
-    authService.saveCredentials('alice', 'pass123');
+    authService.saveCredentials('alice', 'dummy-password');
   });
 
   afterEach(() => {

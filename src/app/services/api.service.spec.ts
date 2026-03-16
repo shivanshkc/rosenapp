@@ -42,27 +42,27 @@ describe('ApiService', () => {
 
   describe('createUser', () => {
     it('should call POST /api/user with username and password', () => {
-      service.createUser({ username: 'alice', password: 'pass123' }).subscribe(res => {
+      service.createUser({ username: 'alice', password: 'dummy-password' }).subscribe(res => {
         expect(res.username).toBe('alice');
       });
 
       const req = httpMock.expectOne('http://localhost:8080/api/user');
       expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ username: 'alice', password: 'pass123' });
+      expect(req.request.body).toEqual({ username: 'alice', password: 'dummy-password' });
       req.flush({ username: 'alice' });
     });
   });
 
   describe('sendMessage', () => {
     it('should call POST /api/message with auth header', () => {
-      authService.saveCredentials('alice', 'pass123');
+      authService.saveCredentials('alice', 'dummy-password');
 
       service.sendMessage({ message: 'hello', receivers: ['bob'] }).subscribe();
 
       const req = httpMock.expectOne('http://localhost:8080/api/message');
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ message: 'hello', receivers: ['bob'] });
-      expect(req.request.headers.get('Authorization')).toBe('Basic ' + btoa('alice:pass123'));
+      expect(req.request.headers.get('Authorization')).toBe('Basic ' + btoa('alice:dummy-password'));
       req.flush({});
     });
 
@@ -75,9 +75,9 @@ describe('ApiService', () => {
 
   describe('getWebSocketUrl', () => {
     it('should return correctly formatted WebSocket URL', () => {
-      authService.saveCredentials('alice', 'pass123');
+      authService.saveCredentials('alice', 'dummy-password');
       const url = service.getWebSocketUrl();
-      expect(url).toBe('ws://localhost:8080/api/connect?username=alice&password=pass123');
+      expect(url).toBe('ws://localhost:8080/api/connect?username=alice&password=dummy-password');
     });
 
     it('should encode special characters in credentials', () => {
