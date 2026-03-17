@@ -1,3 +1,10 @@
+# [3.1.0](https://github.com/shivanshkc/rosenapp/compare/v3.0.1...v3.1.0) (2026-03-17)
+
+
+### Features
+
+* message persistence in browser ([eeb2ccb](https://github.com/shivanshkc/rosenapp/commit/eeb2ccbf65ba19d27a8063580469a42571a944c1))
+
 ## [3.0.1](https://github.com/shivanshkc/rosenapp/compare/v3.0.0...v3.0.1) (2026-03-16)
 
 
