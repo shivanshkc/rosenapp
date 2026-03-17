@@ -2,6 +2,8 @@
 
 A real-time chat application built with Angular and powered by [Rosenbridge](https://github.com/shivanshkc/rosenbridge). Features include user authentication, WebSocket-based messaging, and a Material Design interface with dark and light theme support.
 
+Try the live deployment here: [rosenbridge.shivansh.io](https://rosenbridge.shivansh.io)
+
 ## Tech Stack
 
 - Angular 21 (standalone components)
