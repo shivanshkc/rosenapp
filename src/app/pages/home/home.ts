@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, computed, effect, inject, signal, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -71,6 +71,21 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
   chats = signal<Chat[]>([]);
   selectedChat = signal<Chat | null>(null);
 
+  private storageKey = computed(() => {
+    const username = this.auth.username();
+    return username ? `rosenapp_chats_${username}` : null;
+  });
+
+  constructor() {
+    effect(() => {
+      const key = this.storageKey();
+      const chats = this.chats();
+      if (key) {
+        localStorage.setItem(key, JSON.stringify(chats));
+      }
+    });
+  }
+
   filteredChats = computed(() => {
     const query = this.searchQuery().toLowerCase();
     const chats = query
@@ -80,6 +95,18 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
   });
 
   ngOnInit(): void {
+    const key = this.storageKey();
+    if (key) {
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        try {
+          const parsed: Chat[] = JSON.parse(stored);
+          this.chats.set(parsed);
+          this.nextId = parsed.reduce((max, c) => Math.max(max, c.id), 0) + 1;
+        } catch { /* ignore corrupted data */ }
+      }
+    }
+
     this.ws.connect().subscribe();
 
     this.messagesSub = this.ws.messages$.subscribe(event => {
@@ -159,6 +186,8 @@ export class Home implements OnInit, OnDestroy, AfterViewChecked {
     const dialogRef = this.dialog.open(LogoutDialog, { width: '320px' });
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
+        const key = this.storageKey();
+        if (key) localStorage.removeItem(key);
         this.ws.disconnect();
         this.auth.clearCredentials();
         this.router.navigate(['/login']);
