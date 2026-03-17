@@ -12,6 +12,7 @@ import { WebSocketService, MessageReceivedEvent, ConnectionState } from '../../s
 import { AppConfigService } from '../../services/app-config.service';
 
 describe('Home', () => {
+  let fixture: ReturnType<typeof TestBed.createComponent<Home>>;
   let component: Home;
   let authService: AuthService;
   let wsService: WebSocketService;
@@ -22,6 +23,7 @@ describe('Home', () => {
 
   beforeEach(async () => {
     sessionStorage.clear();
+    localStorage.clear();
     messagesSubject = new Subject<MessageReceivedEvent>();
 
     Object.defineProperty(window, 'matchMedia', {
@@ -60,7 +62,7 @@ describe('Home', () => {
     httpMock = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
 
-    const fixture = TestBed.createComponent(Home);
+    fixture = TestBed.createComponent(Home);
     component = fixture.componentInstance;
     snackBar = (component as any).snackBar;
     vi.spyOn(snackBar, 'open');
@@ -70,6 +72,7 @@ describe('Home', () => {
   afterEach(() => {
     httpMock.verify();
     sessionStorage.clear();
+    localStorage.clear();
   });
 
   it('should create', () => {
@@ -187,6 +190,79 @@ describe('Home', () => {
       expect(authService.isLoggedIn()).toBe(false);
       expect(wsService.disconnect).toHaveBeenCalled();
       expect(navSpy).toHaveBeenCalledWith(['/login']);
+    });
+  });
+
+  describe('chat persistence', () => {
+    const storageKey = 'rosenapp_chats_testuser';
+
+    it('should persist chats to localStorage when chats change', () => {
+      messagesSubject.next({ message: 'hello', sender: 'alice' });
+      fixture.detectChanges();
+
+      const stored = localStorage.getItem(storageKey);
+      expect(stored).toBeTruthy();
+      const parsed = JSON.parse(stored!);
+      expect(parsed.length).toBe(1);
+      expect(parsed[0].username).toBe('alice');
+      expect(parsed[0].messages[0].text).toBe('hello');
+    });
+
+    it('should restore chats from localStorage on init', () => {
+      const chats = [
+        { id: 1, username: 'alice', lastMessage: 'hi', lastActivity: Date.now(), messages: [{ text: 'hi', sent: false, timestamp: '12:00' }] },
+        { id: 2, username: 'bob', lastMessage: 'hey', lastActivity: Date.now(), messages: [{ text: 'hey', sent: true, timestamp: '12:01' }] },
+      ];
+      localStorage.setItem(storageKey, JSON.stringify(chats));
+
+      const fixture = TestBed.createComponent(Home);
+      const freshComponent = fixture.componentInstance;
+      fixture.detectChanges();
+
+      expect(freshComponent.chats().length).toBe(2);
+      expect(freshComponent.chats()[0].username).toBe('alice');
+      expect(freshComponent.chats()[1].username).toBe('bob');
+    });
+
+    it('should handle corrupted localStorage data gracefully', () => {
+      localStorage.setItem(storageKey, 'not-valid-json');
+
+      const fixture = TestBed.createComponent(Home);
+      const freshComponent = fixture.componentInstance;
+      fixture.detectChanges();
+
+      expect(freshComponent.chats().length).toBe(0);
+    });
+
+    it('should assign nextId correctly after restoring chats', () => {
+      const chats = [
+        { id: 5, username: 'alice', lastMessage: 'hi', lastActivity: Date.now(), messages: [] },
+        { id: 3, username: 'bob', lastMessage: 'hey', lastActivity: Date.now(), messages: [] },
+      ];
+      localStorage.setItem(storageKey, JSON.stringify(chats));
+
+      const fixture = TestBed.createComponent(Home);
+      const freshComponent = fixture.componentInstance;
+      fixture.detectChanges();
+
+      messagesSubject.next({ message: 'hello', sender: 'carol' });
+      const carolChat = freshComponent.chats().find(c => c.username === 'carol');
+      expect(carolChat).toBeTruthy();
+      expect(carolChat!.id).toBe(6);
+    });
+
+    it('should clear stored chats on logout', () => {
+      messagesSubject.next({ message: 'hello', sender: 'alice' });
+      expect(localStorage.getItem(storageKey)).toBeTruthy();
+
+      vi.spyOn(router, 'navigate').mockReturnValue(Promise.resolve(true));
+      (component as any).dialog.open = vi.fn().mockReturnValue({
+        afterClosed: () => of(true),
+      });
+
+      component.logout();
+
+      expect(localStorage.getItem(storageKey)).toBeNull();
     });
   });
 
